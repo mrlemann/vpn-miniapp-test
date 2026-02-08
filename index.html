@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lemVPN - Mini App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a14 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Контейнер приложения */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(25, 25, 40, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Хедер с логотипом */
+        .app-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .logo-main {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #9370db, #ff0080);
+            background-size: 400% 400%;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            font-weight: 900;
+            color: white;
+            box-shadow: 
+                0 10px 30px rgba(255, 0, 128, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            animation: gradientFlow 8s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-top: 10px;
+            animation: gradientFlow 8s ease infinite;
+            background-size: 200% auto;
+        }
+
+        .logo-subtext {
+            font-size: 14px;
+            color: #aaa;
+            letter-spacing: 4px;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* Информация о подписке */
+        .subscription-info {
+            background: rgba(30, 30, 50, 0.7);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subscription-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 128, 0.1), transparent);
+            transform: translateX(-100%);
+        }
+
+        .subscription-info.active::before {
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status-active {
+            color: #34d399;
+        }
+
+        .status-expired {
+            color: #f87171;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .indicator-active {
+            background-color: #34d399;
+            box-shadow: 0 0 10px #34d399;
+            animation: pulse 2s infinite;
+        }
+
+        .indicator-expired {
+            background-color: #f87171;
+            box-shadow: 0 0 10px #f87171;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .user-info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .user-info-row i {
+            color: #ff8c00;
+            width: 16px;
+            text-align: center;
+        }
+
+        .user-info-text {
+            color: #ccc;
+        }
+
+        .expiry-date {
+            color: #ffd700;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .expired-warning {
+            color: #f87171;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* Кнопка покупки подписки */
+        .subscribe-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #ff0080, #ff8c00);
+            border: none;
+            border-radius: 18px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subscribe-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+        }
+
+        .subscribe-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 0, 128, 0.5);
+        }
+
+        .subscribe-btn:hover::after {
+            animation: shimmer 1.5s infinite;
+        }
+
+        .subscribe-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .price-tag {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        /* Навигация */
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background: rgba(40, 40, 60, 0.5);
+            border-radius: 16px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(50, 50, 80, 0.7);
+            border-color: rgba(255, 0, 128, 0.3);
+            transform: translateX(5px);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .nav-item .fa-download { color: #ff0080; }
+        .nav-item .fa-user { color: #40e0d0; }
+        .nav-item .fa-headset { color: #ff8c00; }
+
+        .nav-arrow {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Конфетти контейнер */
+        #confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff0080;
+            top: -10px;
+        }
+
+        /* Анимация переключения */
+        .toggle-animation {
+            animation: toggleScale 0.5s ease;
+        }
+
+        @keyframes toggleScale {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: rgba(25, 25, 40, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff0080, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Исправленный крестик */
+        .close-modal {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .close-modal::before,
+        .close-modal::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: white;
+            border-radius: 1px;
+        }
+
+        .close-modal::before {
+            transform: rotate(45deg);
+        }
+
+        .close-modal::after {
+            transform: rotate(-45deg);
+        }
+
+        /* Новая тарифная сетка */
+        .tariff-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        /* Сроки подписки */
+        .duration-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .duration-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .duration-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            position: relative;
+        }
+
+        .duration-option {
+            background: rgba(40, 40, 60, 0.7);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        .duration-option:hover {
+            background: rgba(50, 50, 80, 0.9);
+        }
+
+        .duration-option.selected {
+            border-color: #ff0080;
+            background: rgba(255, 0, 128, 0.1);
+        }
+
+        .duration-months {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .duration-price {
+            font-size: 14px;
+            color: #ff8c00;
+            font-weight: 600;
+        }
+
+        /* Исправленные метки для сроков - КОРОТКИЕ ВЕРСИИ */
+        .duration-label-container {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .duration-label {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .popular-label {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .savings-label {
+            background: #ffd700;
+            color: #1a1a2e;
+        }
+
+        .duration-note {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 5px;
+            min-height: 15px;
+            padding-top: 5px;
+        }
+
+        /* Устройства */
+        .devices-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .devices-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .device-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .device-option {
+            background: rgba(40, 40, 60, 0.7);
+            border-radius: 16px;
+            padding: 20px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .device-option:hover {
+            background: rgba(50, 50, 80, 0.9);
+        }
+
+        .device-option.selected {
+            border-color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .device-label-container {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .device-label {
+            background: #ff6b6b;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .device-type {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            margin-top: 5px;
+        }
+
+        .device-description {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        .device-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #34d399;
+            margin-top: 5px;
+        }
+
+        /* Итоговая цена */
+        .total-section {
+            background: rgba(40, 40, 60, 0.7);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 0, 128, 0.2);
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .total-label {
+            color: #ccc;
+            font-size: 16px;
+        }
+
+        .total-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff8c00;
+        }
+
+        .devices-count {
+            color: #40e0d0;
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        /* Поле для реферального ID */
+        .referral-input-container {
+            margin: 20px 0 0 0;
+        }
+
+        .referral-label {
+            display: block;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .referral-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(40, 40, 60, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .referral-input:focus {
+            outline: none;
+            border-color: #ff0080;
+            box-shadow: 0 0 0 2px rgba(255, 0, 128, 0.2);
+        }
+
+        .referral-input::placeholder {
+            color: #666;
+        }
+
+        /* Кнопка оплаты */
+        .payment-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #ff0080, #ff8c00);
+            border: none;
+            border-radius: 18px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.4);
+        }
+
+        /* Остальные стили остаются без изменений */
+        .config-container {
+            background: rgba(40, 40, 60, 0.7);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 0, 128, 0.2);
+        }
+
+        .config-line {
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+
+        .config-comment {
+            color: #888;
+        }
+
+        .config-key {
+            color: #ff8c00;
+        }
+
+        .config-value {
+            color: #40e0d0;
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff0080, #ff8c00);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 0, 128, 0.3);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(45deg, #34d399, #10b981);
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: rgba(40, 40, 60, 0.7);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .device-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            color: #ff8c00;
+        }
+
+        .user-id {
+            background: rgba(255, 0, 128, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #ff8c00;
+        }
+
+        /* Футер */
+        .app-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 450px) {
+            .app-container {
+                padding: 20px;
+            }
+            
+            .logo-container {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .logo-main {
+                font-size: 50px;
+            }
+            
+            .logo-text {
+                font-size: 28px;
+            }
+            
+            .duration-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .device-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Контейнер для конфетти -->
+    <div id="confetti-container"></div>
+
+    <!-- Основной контейнер приложения -->
+    <div class="app-container">
+        <!-- Хедер с логотипом -->
+        <div class="app-header">
+            <div class="logo-container">
+                <div class="logo-main">L</div>
+            </div>
+            <div class="logo-text">lemVPN</div>
+            <div class="logo-subtext">MINI APP</div>
+        </div>
+
+        <!-- Информация о подписке -->
+        <div class="subscription-info" id="subscription-info">
+            <div class="info-label">lemVPN</div>
+            <div class="info-value">
+                <span class="status-indicator indicator-expired" id="status-indicator"></span>
+                <span class="status-expired" id="status-text">подписка истекла</span>
+            </div>
+            
+            <div class="expiry-date" id="expiry-date">до 13 ноября 2025</div>
+            
+            <div class="user-info">
+                <div class="user-info-row">
+                    <i class="fas fa-user"></i>
+                    <span class="user-info-text" id="user-telegram">@user_1234</span>
+                </div>
+                <div class="user-info-row">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span class="user-info-text" id="user-device">iPhone iOS 16.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка покупки подписки -->
+        <button class="subscribe-btn" id="subscribe-btn">
+            <span>Купить подписку</span>
+            <span class="price-tag">от 299 ₽</span>
+        </button>
+
+        <!-- Навигационное меню -->
+        <div class="nav-menu">
+            <a href="#" class="nav-item" id="config-btn">
+                <div>
+                    <i class="fas fa-download"></i>
+                    Получить конфиг
+                </div>
+                <div class="nav-arrow">v2raytune</div>
+            </a>
+            <a href="#" class="nav-item" id="profile-btn">
+                <div>
+                    <i class="fas fa-user"></i>
+                    Профиль
+                </div>
+                <div class="nav-arrow">→</div>
+            </a>
+            <a href="#" class="nav-item" id="support-btn">
+                <div>
+                    <i class="fas fa-headset"></i>
+                    Поддержка
+                </div>
+                <div class="nav-arrow">→</div>
+            </a>
+        </div>
+
+        <!-- Футер -->
+        <div class="app-footer">
+            © 2023 lemVPN. Все права защищены.
+        </div>
+    </div>
+
+    <!-- Модальное окно покупки подписки -->
+    <div class="modal" id="subscription-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Выбор подписки</div>
+                <button class="close-modal" id="close-modal"></button>
+            </div>
+            <p style="color: #aaa; margin-bottom: 20px;">Выберите срок и количество устройств</p>
+            
+            <div class="tariff-grid">
+                <!-- Сроки подписки -->
+                <div class="duration-section">
+                    <div class="duration-title">Срок подписки</div>
+                    <div class="duration-options">
+                        <!-- 1 месяц -->
+                        <div class="duration-option" data-months="1" data-price="299">
+                            <div class="duration-months">1 месяц</div>
+                            <div class="duration-price">299 ₽</div>
+                        </div>
+                        
+                        <!-- 3 месяца -->
+                        <div class="duration-option" data-months="3" data-price="799">
+                            <div class="duration-months">3 месяца</div>
+                            <div class="duration-price">799 ₽</div>
+                        </div>
+                        
+                        <!-- 6 месяцев -->
+                        <div class="duration-option selected" data-months="6" data-price="1499">
+                            <!-- Метка "🔥Популярный" -->
+                            <div class="duration-label-container">
+                                <div class="duration-label popular-label">🔥Популярный</div>
+                            </div>
+                            <div class="duration-months">6 месяцев</div>
+                            <div class="duration-price">1 499 ₽</div>
+                            <div class="duration-note">Часто выбирают для старта</div>
+                        </div>
+                        
+                        <!-- 12 месяцев -->
+                        <div class="duration-option" data-months="12" data-price="2499">
+                            <!-- Метка "⭐Выгодно" -->
+                            <div class="duration-label-container">
+                                <div class="duration-label savings-label">⭐Выгодно</div>
+                            </div>
+                            <div class="duration-months">12 месяцев</div>
+                            <div class="duration-price">2 499 ₽</div>
+                            <div class="duration-note">Экономия ~30%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Количество устройств -->
+                <div class="devices-section">
+                    <div class="devices-title">Количество устройств</div>
+                    <div class="device-options">
+                        <!-- 1 устройство -->
+                        <div class="device-option" data-devices="1" data-multiplier="1">
+                            <div class="device-type">1 устройство</div>
+                            <div class="device-description">Для одного устройства (телефон или компьютер)</div>
+                            <div class="device-price" id="price-1-device">299 ₽</div>
+                        </div>
+                        
+                        <!-- До 3 устройств -->
+                        <div class="device-option selected" data-devices="3" data-multiplier="1.3">
+                            <!-- Метка "🔥Популярный" -->
+                            <div class="device-label-container">
+                                <div class="device-label">🔥Популярный</div>
+                            </div>
+                            <div class="device-type">До 3 устройств</div>
+                            <div class="device-description">3 одновременных подключения</div>
+                            <div class="device-price" id="price-3-devices">3 249 ₽</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Итоговая цена -->
+                <div class="total-section">
+                    <div class="total-row">
+                        <div class="total-label">Итого к оплате:</div>
+                        <div class="total-value" id="total-price">3 249 ₽</div>
+                    </div>
+                    <div class="devices-count" id="selected-devices-count">До 3 устройств — 3 одновременных подключения</div>
+                </div>
+            </div>
+            
+            <!-- Поле для реферального ID -->
+            <div class="referral-input-container">
+                <label class="referral-label" for="referral-id">
+                    <i class="fas fa-user-plus"></i> Реферальный ID (необязательно)
+                </label>
+                <input type="text" 
+                       id="referral-id" 
+                       class="referral-input" 
+                       placeholder="Введите ID пригласившего"
+                       maxlength="20">
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    При активации реферала, вы получите скидку 10%
+                </div>
+            </div>
+            
+            <button class="payment-btn" id="payment-btn">
+                <i class="fas fa-lock"></i> Перейти к оплате
+            </button>
+        </div>
+    </div>
+
+    <!-- Модальное окно с конфигом -->
+    <div class="modal" id="config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Конфигурация v2raytune</div>
+                <button class="close-modal" id="close-config-modal"></button>
+            </div>
+            
+            <p style="color: #aaa; margin-bottom: 20px;">Ваша конфигурация для подключения к lemVPN:</p>
+            
+            <div class="config-container" id="config-content">
+                <div class="config-line"><span class="config-comment"># Конфигурация lemVPN - v2raytune</span></div>
+                <div class="config-line"><span class="config-comment"># Создано: 13.11.2023</span></div>
+                <div class="config-line"><span class="config-comment"># Действует до: 13.11.2024</span></div>
+                <div class="config-line"><span class="config-comment"># Устройств: 3 одновременных подключения</span></div>
+                <div class="config-line"><br></div>
+                <div class="config-line">{</div>
+                <div class="config-line">  <span class="config-key">"server"</span>: <span class="config-value">"vpn.lemvpn.com"</span>,</div>
+                <div class="config-line">  <span class="config-key">"server_port"</span>: <span class="config-value">443</span>,</div>
+                <div class="config-line">  <span class="config-key">"uuid"</span>: <span class="config-value">"c7f3k9p2-w5r8t1y4-u6i9o0p3"</span>,</div>
+                <div class="config-line">  <span class="config-key">"transport"</span>: <span class="config-value">"ws"</span>,</div>
+                <div class="config-line">  <span class="config-key">"path"</span>: <span class="config-value">"/v2ray"</span>,</div>
+                <div class="config-line">  <span class="config-key">"security"</span>: <span class="config-value">"tls"</span>,</div>
+                <div class="config-line">  <span class="config-key">"sni"</span>: <span class="config-value">"lemvpn.com"</span>,</div>
+                <div class="config-line">  <span class="config-key">"type"</span>: <span class="config-value">"vmess"</span></div>
+                <div class="config-line">}</div>
+            </div>
+            
+            <button class="copy-btn" id="copy-config-btn">
+                <i class="fas fa-copy"></i> Копировать конфиг
+            </button>
+            
+            <p style="color: #888; font-size: 12px; margin-top: 15px; text-align: center;">
+                Импортируйте этот конфиг в приложение v2raytune на вашем устройстве
+            </p>
+        </div>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Профиль</div>
+                <button class="close-modal" id="close-profile-modal"></button>
+            </div>
+            
+            <div class="profile-info">
+                <div class="info-card">
+                    <div class="info-row">
+                        <span class="info-label">Тарифный план:</span>
+                        <span class="info-value" id="profile-plan">Неактивен</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Устройство:</span>
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-mobile-alt device-icon"></i>
+                            <span class="info-value" id="profile-device">iPhone iOS 16.0</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Телеграм:</span>
+                        <span class="info-value" id="profile-telegram">@user_1234</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">ID пользователя:</span>
+                        <span class="user-id" id="profile-id">LVM-7F3K9P2W</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div style="color: #aaa; font-size: 14px; margin-bottom: 10px;">Информация о подписке</div>
+                    <div class="info-row">
+                        <span class="info-label">Статус:</span>
+                        <span class="info-value status-expired">Неактивна</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Дата окончания:</span>
+                        <span class="info-value">13.11.2025</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Оплачено:</span>
+                        <span class="info-value">0 ₽</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы интерфейса
+            const subscriptionInfo = document.getElementById('subscription-info');
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const expiryDate = document.getElementById('expiry-date');
+            const userTelegram = document.getElementById('user-telegram');
+            const userDevice = document.getElementById('user-device');
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            const subscriptionModal = document.getElementById('subscription-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const configModal = document.getElementById('config-modal');
+            const closeConfigModalBtn = document.getElementById('close-config-modal');
+            const configBtn = document.getElementById('config-btn');
+            const profileModal = document.getElementById('profile-modal');
+            const closeProfileModalBtn = document.getElementById('close-profile-modal');
+            const profileBtn = document.getElementById('profile-btn');
+            const supportBtn = document.getElementById('support-btn');
+            const paymentBtn = document.getElementById('payment-btn');
+            const copyConfigBtn = document.getElementById('copy-config-btn');
+            const configContent = document.getElementById('config-content');
+            const referralInput = document.getElementById('referral-id');
+            
+            // Тарифная сетка
+            const durationOptions = document.querySelectorAll('.duration-option');
+            const deviceOptions = document.querySelectorAll('.device-option');
+            const price1Device = document.getElementById('price-1-device');
+            const price3Devices = document.getElementById('price-3-devices');
+            const totalPrice = document.getElementById('total-price');
+            const selectedDevicesCount = document.getElementById('selected-devices-count');
+            
+            // Элементы профиля
+            const profilePlan = document.getElementById('profile-plan');
+            const profileDevice = document.getElementById('profile-device');
+            const profileTelegram = document.getElementById('profile-telegram');
+            const profileId = document.getElementById('profile-id');
+            
+            // Переменные состояния
+            let subscriptionActive = false;
+            let selectedMonths = 12; // По умолчанию 12 месяцев
+            let selectedDevices = 3; // По умолчанию до 3 устройств
+            let selectedPrice = 3249; // По умолчанию цена для 12 месяцев + 3 устройства
+            let referralId = '';
+            let userId = '';
+            
+            // Базовые цены по срокам
+            const basePrices = {
+                1: 299,
+                3: 799,
+                6: 1499,
+                12: 2499
+            };
+            
+            // Цены для "До 3 устройств" (базовая цена + 30%)
+            const prices3Devices = {
+                1: 399,   // 299 + 30%
+                3: 1049,  // 799 + 30%
+                6: 1949,  // 1499 + 30%
+                12: 3249  // 2499 + 30%
+            };
+            
+            // Определяем устройство пользователя
+            function detectDevice() {
+                const userAgent = navigator.userAgent;
+                let device = 'Неизвестное устройство';
+                
+                if (/iPhone|iPad|iPod/.test(userAgent)) {
+                    const version = userAgent.match(/OS (\d+)_(\d+)/) ? userAgent.match(/OS (\d+)_(\d+)/)[1] : '16';
+                    device = `iPhone iOS ${version}`;
+                } else if (/Android/.test(userAgent)) {
+                    const version = userAgent.match(/Android (\d+)/) ? userAgent.match(/Android (\d+)/)[1] : '13';
+                    device = `Android ${version}`;
+                } else if (/Mac/.test(userAgent)) {
+                    device = 'Mac OS';
+                } else if (/Windows/.test(userAgent)) {
+                    device = 'Windows';
+                } else if (/Linux/.test(userAgent)) {
+                    device = 'Linux';
+                }
+                
+                return device;
+            }
+            
+            // Генерируем уникальный ID пользователя
+            function generateUserId() {
+                const prefix = 'LVM-';
+                const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+                let id = '';
+                
+                for (let i = 0; i < 8; i++) {
+                    id += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                
+                return prefix + id;
+            }
+            
+            // Генерируем ник для телеграма
+            function generateTelegramNick() {
+                const adjectives = ['fast', 'secure', 'private', 'digital', 'tech', 'vpn', 'net'];
+                const nouns = ['user', 'surfer', 'explorer', 'traveler', 'hacker', 'coder', 'gamer'];
+                const num = Math.floor(Math.random() * 10000);
+                
+                const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                
+                return `@${adj}_${noun}_${num}`;
+            }
+            
+            // Обновление цен при выборе срока
+            function updatePrices() {
+                // Обновляем цены для 1 устройства
+                price1Device.textContent = `${basePrices[selectedMonths]} ₽`;
+                
+                // Обновляем цены для 3 устройств
+                price3Devices.textContent = `${prices3Devices[selectedMonths]} ₽`;
+                
+                // Обновляем итоговую цену
+                if (selectedDevices === 1) {
+                    selectedPrice = basePrices[selectedMonths];
+                } else {
+                    selectedPrice = prices3Devices[selectedMonths];
+                }
+                
+                totalPrice.textContent = `${selectedPrice} ₽`;
+                
+                // Обновляем текст о количестве устройств
+                if (selectedDevices === 1) {
+                    selectedDevicesCount.textContent = '1 устройство';
+                } else {
+                    selectedDevicesCount.textContent = 'До 3 устройств — 3 одновременных подключения';
+                }
+            }
+            
+            // Инициализируем профиль
+            function initProfile() {
+                userId = generateUserId();
+                const device = detectDevice();
+                const telegramNick = generateTelegramNick();
+                
+                // Обновляем главный экран
+                userDevice.textContent = device;
+                userTelegram.textContent = telegramNick;
+                
+                // Обновляем профиль
+                profileDevice.textContent = device;
+                profileTelegram.textContent = telegramNick;
+                profileId.textContent = userId;
+            }
+            
+            // Обработчик кнопки подписки
+            subscribeBtn.addEventListener('click', function() {
+                subscriptionModal.style.display = 'flex';
+            });
+            
+            // Обработчик кнопки закрытия модального окна
+            closeModalBtn.addEventListener('click', function() {
+                subscriptionModal.style.display = 'none';
+            });
+            
+            // Обработчик кнопки конфига
+            configBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (subscriptionActive) {
+                    configModal.style.display = 'flex';
+                } else {
+                    alert('Для получения конфигурации требуется активная подписка');
+                    subscribeBtn.click();
+                }
+            });
+            
+            // Обработчик кнопки закрытия модального окна конфига
+            closeConfigModalBtn.addEventListener('click', function() {
+                configModal.style.display = 'none';
+            });
+            
+            // Обработчик кнопки профиля
+            profileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                profileModal.style.display = 'flex';
+            });
+            
+            // Обработчик кнопки закрытия модального окна профиля
+            closeProfileModalBtn.addEventListener('click', function() {
+                profileModal.style.display = 'none';
+            });
+            
+            // Обработчик кнопки поддержки
+            supportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Служба поддержки: support@lemvpn.com\nTelegram: @lemvpn_support');
+            });
+            
+            // Обработчик выбора срока подписки
+            durationOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Снимаем выделение со всех сроков
+                    durationOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Выделяем выбранный срок
+                    this.classList.add('selected');
+                    selectedMonths = parseInt(this.dataset.months);
+                    
+                    // Обновляем цены
+                    updatePrices();
+                });
+            });
+            
+            // Обработчик выбора количества устройств
+            deviceOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Снимаем выделение со всех устройств
+                    deviceOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Выделяем выбранное устройство
+                    this.classList.add('selected');
+                    selectedDevices = parseInt(this.dataset.devices);
+                    
+                    // Обновляем цены
+                    updatePrices();
+                });
+            });
+            
+            // Обработчик изменения реферального ID
+            referralInput.addEventListener('input', function() {
+                referralId = this.value.trim();
+            });
+            
+            // Обработчик кнопки оплаты
+            paymentBtn.addEventListener('click', function() {
+                // Проверяем реферальный ID
+                if (referralId && !/^[A-Za-z0-9_-]{3,20}$/.test(referralId)) {
+                    alert('Реферальный ID должен содержать только буквы, цифры, дефисы и подчеркивания (3-20 символов)');
+                    return;
+                }
+                
+                // Анимация нажатия
+                this.classList.add('toggle-animation');
+                setTimeout(() => {
+                    this.classList.remove('toggle-animation');
+                }, 500);
+                
+                // Имитация процесса оплаты
+                paymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка платежа...';
+                paymentBtn.disabled = true;
+                
+                setTimeout(() => {
+                    // Успешная оплата
+                    subscriptionActive = true;
+                    
+                    // Применяем скидку при наличии реферала
+                    let finalPrice = selectedPrice;
+                    let discountApplied = false;
+                    
+                    if (referralId) {
+                        finalPrice = Math.floor(selectedPrice * 0.9); // 10% скидка
+                        discountApplied = true;
+                    }
+                    
+                    // Обновляем информацию о подписке
+                    statusText.textContent = 'активна';
+                    statusText.className = 'status-active';
+                    statusIndicator.className = 'status-indicator indicator-active';
+                    subscriptionInfo.classList.add('active');
+                    
+                    // Обновляем дату окончания подписки
+                    const now = new Date();
+                    let expiry = new Date();
+                    expiry.setMonth(now.getMonth() + selectedMonths);
+                    
+                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                    const formattedDate = expiry.toLocaleDateString('ru-RU', options);
+                    expiryDate.textContent = `до ${formattedDate}`;
+                    
+                    // Обновляем профиль
+                    const planName = `${selectedMonths} месяц${selectedMonths > 1 ? selectedMonths > 4 ? 'ев' : 'а' : ''} • ${selectedDevices} устройств${selectedDevices > 1 ? 'а' : ''}`;
+                    profilePlan.textContent = planName;
+                    
+                    // Обновляем текст кнопки
+                    subscribeBtn.innerHTML = '<span>Конфиг доступен</span><span class="price-tag">v2raytune</span>';
+                    subscribeBtn.style.background = 'linear-gradient(45deg, #34d399, #10b981)';
+                    subscribeBtn.style.boxShadow = '0 10px 30px rgba(52, 211, 153, 0.3)';
+                    
+                    // Закрываем модальное окно
+                    subscriptionModal.style.display = 'none';
+                    
+                    // Запускаем конфетти
+                    launchConfetti();
+                    
+                    // Показываем сообщение об успехе
+                    setTimeout(() => {
+                        let successMessage = '✅ Оплата прошла успешно!\n';
+                        successMessage += `📅 Срок: ${selectedMonths} месяц${selectedMonths > 1 ? selectedMonths > 4 ? 'ев' : 'а' : ''}\n`;
+                        successMessage += `📱 Устройств: ${selectedDevices} одновременных подключений\n`;
+                        successMessage += `💳 Оплачено: ${finalPrice} ₽`;
+                        
+                        if (discountApplied) {
+                            successMessage += `\n🎁 Применена скидка 10% за реферала ${referralId}`;
+                        }
+                        
+                        alert(successMessage);
+                    }, 500);
+                    
+                    // Показываем конфиг через 2 секунды
+                    setTimeout(() => {
+                        configModal.style.display = 'flex';
+                    }, 2000);
+                    
+                    // Возвращаем кнопку в исходное состояние
+                    setTimeout(() => {
+                        paymentBtn.innerHTML = '<i class="fas fa-lock"></i> Перейти к оплате';
+                        paymentBtn.disabled = false;
+                    }, 1000);
+                    
+                }, 2000);
+            });
+            
+            // Обработчик кнопки копирования конфига
+            copyConfigBtn.addEventListener('click', function() {
+                const configText = configContent.textContent;
+                
+                // Используем Clipboard API если доступен
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(configText).then(() => {
+                        // Показываем успешное копирование
+                        copyConfigBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+                        copyConfigBtn.classList.add('copied');
+                        
+                        setTimeout(() => {
+                            copyConfigBtn.innerHTML = '<i class="fas fa-copy"></i> Копировать конфиг';
+                            copyConfigBtn.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Ошибка копирования: ', err);
+                        fallbackCopyTextToClipboard(configText);
+                    });
+                } else {
+                    fallbackCopyTextToClipboard(configText);
+                }
+            });
+            
+            // Фолбэк для копирования текста
+            function fallbackCopyTextToClipboard(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    // Показываем успешное копирование
+                    copyConfigBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+                    copyConfigBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        copyConfigBtn.innerHTML = '<i class="fas fa-copy"></i> Копировать конфиг';
+                        copyConfigBtn.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Ошибка копирования: ', err);
+                    alert('Не удалось скопировать конфиг. Скопируйте текст вручную.');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            // Закрытие модальных окон при клике вне их
+            window.addEventListener('click', function(e) {
+                if (e.target === subscriptionModal) {
+                    subscriptionModal.style.display = 'none';
+                }
+                if (e.target === configModal) {
+                    configModal.style.display = 'none';
+                }
+                if (e.target === profileModal) {
+                    profileModal.style.display = 'none';
+                }
+            });
+            
+            // Функция запуска конфетти
+            function launchConfetti() {
+                const container = document.getElementById('confetti-container');
+                container.style.display = 'block';
+                container.innerHTML = '';
+                
+                const colors = ['#ff0080', '#ff8c00', '#40e0d0', '#9370db', '#ffff00', '#34d399'];
+                
+                // Создаем конфетти
+                for (let i = 0; i < 150; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    
+                    // Случайные свойства
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const size = Math.random() * 8 + 4;
+                    const left = Math.random() * 100;
+                    const animationDuration = Math.random() * 3 + 2;
+                    const animationDelay = Math.random() * 0.5;
+                    
+                    // Применяем стили
+                    confetti.style.background = color;
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.left = `${left}vw`;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.opacity = Math.random() * 0.7 + 0.3;
+                    
+                    // Анимация
+                    confetti.style.animation = `
+                        fall ${animationDuration}s ease-in ${animationDelay}s forwards,
+                        sway ${animationDuration * 0.5}s ease-in-out ${animationDelay}s infinite alternate
+                    `;
+                    
+                    // Стили для анимации
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes fall {
+                            to {
+                                transform: translateY(100vh) rotate(${Math.random() * 360}deg);
+                            }
+                        }
+                        @keyframes sway {
+                            0%, 100% { transform: translateX(0); }
+                            50% { transform: translateX(${Math.random() > 0.5 ? '-' : ''}${Math.random() * 20}px); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    
+                    container.appendChild(confetti);
+                    
+                    // Удаляем конфетти после анимации
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, (animationDuration + animationDelay) * 1000);
+                }
+                
+                // Скрываем контейнер через 3 секунды
+                setTimeout(() => {
+                    container.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Инициализация
+            initProfile();
+            updatePrices(); // Обновляем цены при загрузке
+            
+            // Анимация логотипа при загрузке
+            setTimeout(() => {
+                document.querySelector('.logo-container').classList.add('toggle-animation');
+                setTimeout(() => {
+                    document.querySelector('.logo-container').classList.remove('toggle-animation');
+                }, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
